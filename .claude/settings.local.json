@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(npm install next@15 react@19 react-dom@19 @supabase/supabase-js @supabase/ssr qrcode html5-qrcode exceljs)",
+      "PowerShell(npm install -D typescript @types/node @types/react @types/react-dom @types/qrcode tailwindcss@3 postcss autoprefixer)",
+      "PowerShell(npm run build)",
+      "PowerShell(npm install -D typescript@5.9)"
+    ]
+  }
+}
