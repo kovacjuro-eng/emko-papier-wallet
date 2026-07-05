@@ -22,18 +22,43 @@ export default function ScanClient() {
   const handledRef = useRef(false);
 
   useEffect(() => {
-    let scanner: { stop: () => Promise<void>; clear: () => void } | null = null;
     let cancelled = false;
+    let scanner: import("html5-qrcode").Html5Qrcode | null = null;
+    // stavy, v ktorých je stop() legálny (SCANNING / PAUSED) – naplní sa po importe
+    let stoppableStates: number[] = [];
+    // jediný zdieľaný stop: success handler aj cleanup dostanú ten istý promise,
+    // takže stop() sa nikdy nezavolá dvakrát
+    let stopPromise: Promise<void> | null = null;
+
+    const safeStop = (): Promise<void> => {
+      if (stopPromise) return stopPromise;
+      // stop() pri nebežiacom skeneri vyhadzuje výnimku SYNCHRÓNNE,
+      // preto kontrola getState() aj try/catch okolo celého volania
+      try {
+        if (!scanner || !stoppableStates.includes(scanner.getState())) {
+          return Promise.resolve();
+        }
+        stopPromise = scanner.stop().catch(() => {});
+      } catch {
+        return Promise.resolve();
+      }
+      return stopPromise;
+    };
 
     (async () => {
       try {
-        const { Html5Qrcode } = await import("html5-qrcode");
+        const { Html5Qrcode, Html5QrcodeScannerState } = await import(
+          "html5-qrcode"
+        );
         if (cancelled) return;
 
-        const instance = new Html5Qrcode(READER_ID);
-        scanner = instance;
+        stoppableStates = [
+          Html5QrcodeScannerState.SCANNING,
+          Html5QrcodeScannerState.PAUSED,
+        ];
+        scanner = new Html5Qrcode(READER_ID);
 
-        await instance.start(
+        await scanner.start(
           { facingMode: "environment" },
           { fps: 10, qrbox: { width: 250, height: 250 } },
           (decodedText) => {
@@ -41,15 +66,18 @@ export default function ScanClient() {
             const id = extractCustomerId(decodedText);
             if (!id) return;
             handledRef.current = true;
-            instance
-              .stop()
-              .catch(() => {})
-              .finally(() => router.push(`/customers/${id}`));
+            // navigujeme až po dokončení stopu, aby cleanup nebežal súbežne
+            safeStop().finally(() => router.push(`/customers/${id}`));
           },
           () => {
             // priebežné chyby dekódovania ignorujeme
           }
         );
+
+        // komponent sa odmountoval počas štartu kamery – hneď ju vypneme
+        if (cancelled) {
+          await safeStop();
+        }
       } catch {
         if (!cancelled) {
           setError(
@@ -61,9 +89,7 @@ export default function ScanClient() {
 
     return () => {
       cancelled = true;
-      if (scanner) {
-        scanner.stop().catch(() => {});
-      }
+      void safeStop();
     };
   }, [router]);
 
