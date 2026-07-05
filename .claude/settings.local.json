@@ -4,7 +4,14 @@
       "PowerShell(npm install next@15 react@19 react-dom@19 @supabase/supabase-js @supabase/ssr qrcode html5-qrcode exceljs)",
       "PowerShell(npm install -D typescript @types/node @types/react @types/react-dom @types/qrcode tailwindcss@3 postcss autoprefixer)",
       "PowerShell(npm run build)",
-      "PowerShell(npm install -D typescript@5.9)"
+      "PowerShell(npm install -D typescript@5.9)",
+      "PowerShell(npm install)",
+      "PowerShell(npm ls uuid)",
+      "PowerShell(npm audit)",
+      "PowerShell(node \"C:\\\\Users\\\\kovac\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-kovac-emkopapier-wallet\\\\992a5578-a1d9-4194-9304-f2b6707e5e93\\\\scratchpad\\\\test-exceljs.js\")",
+      "PowerShell(npm view next@^15 version)",
+      "PowerShell(npm view next dist-tags.latest)",
+      "PowerShell(npm view next@latest dependencies.postcss)"
     ]
   }
 }
